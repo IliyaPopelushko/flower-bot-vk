@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FlowerBot - Цветочный магазин</title>
-    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -52,14 +51,14 @@
         <!-- Экран добавления события -->
         <div id="add-event-screen" class="screen">
             <div class="header">
-                <button class="btn btn--back" onclick="showScreen('home-screen')">← Назад</button>
-                <h1>Добавить событие</h1>
+                <button class="back-btn" onclick="showScreen('home-screen')">← Назад</button>
+                <h2>Добавить событие</h2>
             </div>
 
-            <form id="event-form" class="form">
+            <form id="event-form" class="event-form">
                 <div class="form-group">
-                    <label for="event-type">Тип события</label>
-                    <select id="event-type" required>
+                    <label class="form-label">Тип события</label>
+                    <select class="form-control" id="event-type" required>
                         <option value="">Выберите тип события</option>
                         <option value="День рождения">День рождения</option>
                         <option value="Свадьба">Свадьба</option>
@@ -72,18 +71,18 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="event-date">Дата события</label>
-                    <input type="date" id="event-date" required>
+                    <label class="form-label">Дата события</label>
+                    <input type="date" class="form-control" id="event-date" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="recipient-name">Имя получателя</label>
-                    <input type="text" id="recipient-name" placeholder="Для кого букет?" required>
+                    <label class="form-label">Имя получателя</label>
+                    <input type="text" class="form-control" id="recipient-name" placeholder="Например: Мария" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="event-comment">Комментарий (необязательно)</label>
-                    <textarea id="event-comment" placeholder="Особые пожелания или предпочтения"></textarea>
+                    <label class="form-label">Комментарий (необязательно)</label>
+                    <textarea class="form-control" id="event-comment" placeholder="Особые пожелания или предпочтения"></textarea>
                 </div>
 
                 <div class="checkbox-group">
@@ -92,27 +91,95 @@
                         <span class="checkmark"></span>
                         Получать напоминания за 7 дней, 3 дня и в день события
                     </label>
+                    <div class="bonus-notice">
+                        🎁 При подписке на напоминания скидка 5% на первый заказ!
+                    </div>
                 </div>
 
-                <div class="bonus-highlight">
-                    🎁 Скидка 5% при подписке на напоминания!
-                </div>
-
-                <button type="submit" class="btn btn--primary btn--large">
+                <button type="submit" class="btn btn--primary btn--full-width">
                     Сохранить событие
                 </button>
             </form>
         </div>
 
-        <!-- Остальные экраны... -->
+        <!-- Экран карусели букетов -->
+        <div id="bouquets-carousel-screen" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('home-screen')">← Назад</button>
+                <div class="reminder-header">
+                    <h2 id="reminder-title">Напоминание о событии</h2>
+                    <p id="reminder-subtitle">До события осталось дней</p>
+                </div>
+            </div>
+
+            <div class="carousel-container">
+                <div id="bouquets-carousel" class="bouquets-carousel">
+                    <!-- Будет заполнено через JS -->
+                </div>
+            </div>
+
+            <button class="btn btn--outline" onclick="showOtherBouquets()">
+                Посмотреть другие варианты
+            </button>
+        </div>
+
+        <!-- Экран подтверждения заказа -->
+        <div id="order-confirmation-screen" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('bouquets-carousel-screen')">← Назад</button>
+                <h2>Оформление заказа</h2>
+            </div>
+
+            <div class="selected-bouquet-info" id="selected-bouquet-info">
+                <!-- Будет заполнено через JS -->
+            </div>
+
+            <form id="order-form" class="order-form">
+                <div class="form-group">
+                    <label class="form-label">Ваше имя</label>
+                    <input type="text" class="form-control" id="customer-name" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Номер телефона</label>
+                    <input type="tel" class="form-control" id="customer-phone" placeholder="+7 (___) ___-__-__" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Адрес доставки (необязательно)</label>
+                    <textarea class="form-control" id="delivery-address" placeholder="Укажите адрес или район доставки"></textarea>
+                </div>
+
+                <div class="info-notice">
+                    <span class="info-icon">ℹ️</span>
+                    <p>Администратор свяжется с вами в течение 30 минут для уточнения деталей и оформления заказа</p>
+                </div>
+
+                <button type="submit" class="btn btn--primary btn--full-width">
+                    Отправить заказ администратору
+                </button>
+            </form>
+        </div>
+
+        <!-- Экран управления событиями -->
+        <div id="manage-events-screen" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('home-screen')">← Назад</button>
+                <h2>Управление событиями</h2>
+            </div>
+
+            <div id="manage-events-list" class="manage-events-list">
+                <!-- Будет заполнено через JS -->
+            </div>
+        </div>
+
+        <!-- Уведомления -->
+        <div id="notification" class="notification hidden">
+            <span id="notification-text"></span>
+            <button class="notification-close" onclick="hideNotification()">×</button>
+        </div>
     </div>
 
-    <script>
-        // Инициализация VK Bridge
-        if (window.vkBridge) {
-            vkBridge.send('VKWebAppInit');
-        }
-    </script>
     <script src="app.js"></script>
 </body>
 </html>
