@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowerBot - Цветочный магазин</title>
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Главный экран -->
+        <div id="home-screen" class="screen active">
+            <div class="header">
+                <h1>🌸 FlowerBot</h1>
+                <p class="subtitle">Ваш персональный помощник для заказа цветов</p>
+            </div>
+            
+            <div class="welcome-card">
+                <h2>Добро пожаловать!</h2>
+                <p>Добавьте важные события, и мы напомним вам о них заранее с подборкой красивых букетов</p>
+                <div class="bonus-info">
+                    <span class="bonus-icon">🎁</span>
+                    <span>Скидка 5% при подписке на напоминания!</span>
+                </div>
+            </div>
+
+            <button class="btn btn--primary btn--large" onclick="showScreen('add-event-screen')">
+                <span class="btn-icon">➕</span>
+                Добавить событие
+            </button>
+
+            <div class="events-section">
+                <h3>Мои события</h3>
+                <div id="events-list" class="events-list">
+                    <div class="empty-state">
+                        <span class="empty-icon">📅</span>
+                        <p>У вас пока нет добавленных событий</p>
+                        <p class="empty-subtitle">Добавьте первое событие, чтобы получать напоминания</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="top-bouquets-section">
+                <h3>Топ-3 букета месяца</h3>
+                <div class="bouquets-grid" id="top-bouquets">
+                    <!-- Будет заполнено через JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран добавления события -->
+        <div id="add-event-screen" class="screen">
+            <div class="header">
+                <button class="btn btn--back" onclick="showScreen('home-screen')">← Назад</button>
+                <h1>Добавить событие</h1>
+            </div>
+
+            <form id="event-form" class="form">
+                <div class="form-group">
+                    <label for="event-type">Тип события</label>
+                    <select id="event-type" required>
+                        <option value="">Выберите тип события</option>
+                        <option value="День рождения">День рождения</option>
+                        <option value="Свадьба">Свадьба</option>
+                        <option value="Юбилей">Юбилей</option>
+                        <option value="Годовщина">Годовщина</option>
+                        <option value="День матери">День матери</option>
+                        <option value="8 марта">8 марта</option>
+                        <option value="Другое">Другое</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="event-date">Дата события</label>
+                    <input type="date" id="event-date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="recipient-name">Имя получателя</label>
+                    <input type="text" id="recipient-name" placeholder="Для кого букет?" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="event-comment">Комментарий (необязательно)</label>
+                    <textarea id="event-comment" placeholder="Особые пожелания или предпочтения"></textarea>
+                </div>
+
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="reminders-enabled" checked>
+                        <span class="checkmark"></span>
+                        Получать напоминания за 7 дней, 3 дня и в день события
+                    </label>
+                </div>
+
+                <div class="bonus-highlight">
+                    🎁 Скидка 5% при подписке на напоминания!
+                </div>
+
+                <button type="submit" class="btn btn--primary btn--large">
+                    Сохранить событие
+                </button>
+            </form>
+        </div>
+
+        <!-- Остальные экраны... -->
+    </div>
+
+    <script>
+        // Инициализация VK Bridge
+        if (window.vkBridge) {
+            vkBridge.send('VKWebAppInit');
+        }
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
