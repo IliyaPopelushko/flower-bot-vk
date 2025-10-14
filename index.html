@@ -6,6 +6,13 @@
     <title>FlowerBot - Цветочный магазин</title>
     <link rel="stylesheet" href="style.css">
 </head>
+<script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+<script>
+  // Инициализация VK Bridge
+  if (window.vkBridge) {
+    vkBridge.send('VKWebAppInit');
+  }
+</script>
 <body>
     <div class="app">
         <!-- Главный экран -->
