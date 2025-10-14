@@ -8,9 +8,15 @@
 </head>
 <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
 <script>
-  // Инициализация VK Bridge
+  // Инициализация VK Bridge - ОБЯЗАТЕЛЬНО!
   if (window.vkBridge) {
-    vkBridge.send('VKWebAppInit');
+    vkBridge.send('VKWebAppInit')
+      .then(data => {
+        console.log('VK Bridge initialized successfully', data);
+      })
+      .catch(error => {
+        console.log('VK Bridge initialization error', error);
+      });
   }
 </script>
 <body>
