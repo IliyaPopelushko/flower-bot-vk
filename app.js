@@ -437,57 +437,70 @@ function showOtherBouquets() {
 }
 
 // Form handlers
-function handleEventForm(event) {
-  event.preventDefault();
-  
-  const formData = {
-    type: document.getElementById('event-type').value.trim(),
-    date: document.getElementById('event-date').value.trim(),
-    recipientName: document.getElementById('recipient-name').value.trim(),
-    comment: document.getElementById('event-comment').value.trim(),
-    remindersEnabled: document.getElementById('reminders-enabled').checked
-  };
-  
-  // Enhanced validation with better error messages
-  if (!formData.type) {
-    showNotification('Пожалуйста, выберите тип события', 'error');
-    return;
-  }
-  
-  if (!formData.date) {
-    showNotification('Пожалуйста, выберите дату события', 'error');
-    return;
-  }
-  
-  if (!formData.recipientName) {
-    showNotification('Пожалуйста, укажите имя получателя', 'error');
-    return;
-  }
-  
-  // Validate date
-  const eventDate = new Date(formData.date);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  eventDate.setHours(0, 0, 0, 0);
-  
-  if (isNaN(eventDate.getTime())) {
-    showNotification('Пожалуйста, выберите корректную дату', 'error');
-    return;
-  }
-  
-  if (eventDate < today) {
-    showNotification('Дата события не может быть в прошлом', 'error');
-    return;
-  }
-  
-  saveEvent(formData);
-  
-  // Reset form
-  document.getElementById('event-form').reset();
-  document.getElementById('reminders-enabled').checked = true;
-  
-  showScreen('home-screen');
+// В вашем app.js мини-приложения
+function handleEventForm() {
+    const form = document.getElementById('event-form');
+    if (!form) return;
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Получаем ID текущего пользователя VK
+        let userId = 'default_user'; // по умолчанию
+        
+        if (window.vkBridge) {
+            try {
+                const user = await vkBridge.send('VKWebAppGetUserInfo');
+                userId = user.id.toString();
+            } catch (error) {
+                console.log('Could not get user info:', error);
+            }
+        }
+        
+        const eventData = {
+            user_id: userId,
+            type: document.getElementById('event-type').value,
+            date: document.getElementById('event-date').value,
+            recipient_name: document.getElementById('recipient-name').value,
+            comment: document.getElementById('event-comment').value || ''
+        };
+        
+        try {
+            // ЗАМЕНИТЕ на ваш реальный URL!
+            const response = await fetch('https://flower-bot-backend.vercel.app/api/events/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(eventData)
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                // Показываем уведомление через VK Bridge
+                if (window.vkBridge) {
+                    vkBridge.send('VKWebAppTapticNotificationOccurred', {
+                        type: 'success'
+                    });
+                }
+                
+                alert('✅ Событие успешно добавлено! Вы получите напоминания в нужное время.');
+                form.reset();
+                showScreen('home-screen');
+                
+                // Обновляем список событий
+                renderEvents();
+            } else {
+                alert('❌ Ошибка: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error saving event:', error);
+            alert('❌ Ошибка при сохранении события. Проверьте подключение к интернету.');
+        }
+    });
 }
+
 
 function handleOrderForm(event) {
   event.preventDefault();
