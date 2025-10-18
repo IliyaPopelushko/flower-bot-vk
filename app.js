@@ -439,78 +439,123 @@ function showOtherBouquets() {
 // Form handlers
 // В вашем app.js мини-приложения
 function handleEventForm() {
+    console.log('=== handleEventForm called ===');
+    
     const form = document.getElementById('event-form');
-    if (!form) return;
+    if (!form) {
+        console.error('❌ Form not found!');
+        return;
+    }
+    
+    console.log('✅ Form found:', form);
     
     form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    console.log('=== FORM SUBMIT ===');
-    
-    let userId = 'default_user';
-    
-    if (window.vkBridge) {
-        try {
-            console.log('Getting VK user info...');
-            const user = await vkBridge.send('VKWebAppGetUserInfo');
-            userId = user.id.toString();
-            console.log('✅ Got user ID:', userId);
-        } catch (error) {
-            console.log('❌ Could not get user info:', error);
+        console.log('=== FORM SUBMIT EVENT ===');
+        e.preventDefault();
+        
+        // Получаем ID текущего пользователя VK
+        let userId = 'default_user';
+        
+        if (window.vkBridge) {
+            console.log('VK Bridge available, getting user info...');
+            try {
+                const user = await vkBridge.send('VKWebAppGetUserInfo');
+                userId = user.id.toString();
+                console.log('✅ Got VK user ID:', userId);
+            } catch (error) {
+                console.log('⚠️ Could not get VK user info:', error);
+            }
+        } else {
+            console.log('⚠️ VK Bridge not available, using default user');
         }
-    } else {
-        console.log('⚠️ VK Bridge not available');
-    }
-    
-    const eventData = {
-        user_id: userId,
-        type: document.getElementById('event-type').value,
-        date: document.getElementById('event-date').value,
-        recipient_name: document.getElementById('recipient-name').value,
-        comment: document.getElementById('event-comment').value || ''
-    };
-    
-    console.log('Event data to send:', eventData);
-    
-    try {
-        console.log('Sending request to API...');
         
-        const response = await fetch('https://flower-bot-backend.vercel.app/api/events/add', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(eventData)
-        });
-
-        console.log('Response status:', response.status);
+        const eventData = {
+            user_id: userId,
+            type: document.getElementById('event-type').value,
+            date: document.getElementById('event-date').value,
+            recipient_name: document.getElementById('recipient-name').value,
+            comment: document.getElementById('event-comment').value || ''
+        };
         
-        const result = await response.json();
-        console.log('Response data:', result);
+        console.log('Event data prepared:', eventData);
         
-        if (result.success) {
-            console.log('✅ SUCCESS! Event saved:', result.event);
+        // Валидация на клиенте
+        if (!eventData.type || !eventData.date || !eventData.recipient_name) {
+            console.error('❌ Validation failed - missing required fields');
+            alert('❌ Пожалуйста, заполните все обязательные поля');
+            return;
+        }
+        
+        try {
+            console.log('Sending request to API...');
             
-            if (window.vkBridge) {
-                vkBridge.send('VKWebAppTapticNotificationOccurred', {
-                    type: 'success'
-                });
+            // ЗАМЕНИТЕ URL на ваш реальный!
+            const apiUrl = 'https:/flower-bot-backend.vercel.app/api/events/add';
+            console.log('API URL:', apiUrl);
+            
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(eventData)
+            });
+
+            console.log('Response received. Status:', response.status);
+            console.log('Response ok:', response.ok);
+            
+            if (!response.ok) {
+                console.error('❌ Response not OK. Status:', response.status);
+                const errorText = await response.text();
+                console.error('Error text:', errorText);
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
             
-            alert('✅ Событие успешно добавлено! Вы получите напоминания в нужное время.');
-            form.reset();
-            showScreen('home-screen');
-            renderEvents();
-        } else {
-            console.log('❌ API returned error:', result.error);
-            alert('❌ Ошибка: ' + result.error);
+            const result = await response.json();
+            console.log('Response parsed as JSON:', result);
+            
+            if (result.success) {
+                console.log('✅ SUCCESS! Event saved:', result.event);
+                
+                // VK уведомление
+                if (window.vkBridge) {
+                    try {
+                        await vkBridge.send('VKWebAppTapticNotificationOccurred', {
+                            type: 'success'
+                        });
+                        console.log('✅ VK notification sent');
+                    } catch (err) {
+                        console.log('⚠️ VK notification failed:', err);
+                    }
+                }
+                
+                alert('✅ Событие успешно добавлено! Вы получите напоминания в нужное время.');
+                
+                // Очищаем форму
+                form.reset();
+                console.log('Form reset');
+                
+                // Возвращаемся на главный экран
+                showScreen('home-screen');
+                console.log('Switched to home screen');
+                
+                // Обновляем список событий
+                renderEvents();
+                console.log('Events re-rendered');
+                
+            } else {
+                console.error('❌ API returned error:', result.error);
+                alert('❌ Ошибка: ' + (result.error || 'Неизвестная ошибка'));
+            }
+        } catch (error) {
+            console.error('❌ Exception during API call:', error);
+            alert('❌ Ошибка при сохранении события: ' + error.message);
         }
-    } catch (error) {
-        console.error('❌ Exception during API call:', error);
-        alert('❌ Ошибка при сохранении события. Проверьте подключение к интернету.');
-    }
-});
-  }
+    });
+    
+    console.log('✅ Event listener added to form');
+}
+
 
 
 
