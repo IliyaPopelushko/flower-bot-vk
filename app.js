@@ -475,7 +475,7 @@ function handleEventForm() {
     try {
         console.log('Sending request to API...');
         
-        const response = await fetch('https://ваш-проект.vercel.app/api/events/add', {
+        const response = await fetch('https://flower-bot-backend.vercel.app/api/events/add', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
