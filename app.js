@@ -443,63 +443,74 @@ function handleEventForm() {
     if (!form) return;
     
     form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        // Получаем ID текущего пользователя VK
-        let userId = 'default_user'; // по умолчанию
-        
-        if (window.vkBridge) {
-            try {
-                const user = await vkBridge.send('VKWebAppGetUserInfo');
-                userId = user.id.toString();
-            } catch (error) {
-                console.log('Could not get user info:', error);
-            }
-        }
-        
-        const eventData = {
-            user_id: userId,
-            type: document.getElementById('event-type').value,
-            date: document.getElementById('event-date').value,
-            recipient_name: document.getElementById('recipient-name').value,
-            comment: document.getElementById('event-comment').value || ''
-        };
-        
+    e.preventDefault();
+    
+    console.log('=== FORM SUBMIT ===');
+    
+    let userId = 'default_user';
+    
+    if (window.vkBridge) {
         try {
-            // ЗАМЕНИТЕ на ваш реальный URL!
-            const response = await fetch('https://flower-bot-backend.vercel.app/api/events/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(eventData)
-            });
-
-            const result = await response.json();
-            
-            if (result.success) {
-                // Показываем уведомление через VK Bridge
-                if (window.vkBridge) {
-                    vkBridge.send('VKWebAppTapticNotificationOccurred', {
-                        type: 'success'
-                    });
-                }
-                
-                alert('✅ Событие успешно добавлено! Вы получите напоминания в нужное время.');
-                form.reset();
-                showScreen('home-screen');
-                
-                // Обновляем список событий
-                renderEvents();
-            } else {
-                alert('❌ Ошибка: ' + result.error);
-            }
+            console.log('Getting VK user info...');
+            const user = await vkBridge.send('VKWebAppGetUserInfo');
+            userId = user.id.toString();
+            console.log('✅ Got user ID:', userId);
         } catch (error) {
-            console.error('Error saving event:', error);
-            alert('❌ Ошибка при сохранении события. Проверьте подключение к интернету.');
+            console.log('❌ Could not get user info:', error);
         }
-    });
-}
+    } else {
+        console.log('⚠️ VK Bridge not available');
+    }
+    
+    const eventData = {
+        user_id: userId,
+        type: document.getElementById('event-type').value,
+        date: document.getElementById('event-date').value,
+        recipient_name: document.getElementById('recipient-name').value,
+        comment: document.getElementById('event-comment').value || ''
+    };
+    
+    console.log('Event data to send:', eventData);
+    
+    try {
+        console.log('Sending request to API...');
+        
+        const response = await fetch('https://ваш-проект.vercel.app/api/events/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(eventData)
+        });
+
+        console.log('Response status:', response.status);
+        
+        const result = await response.json();
+        console.log('Response data:', result);
+        
+        if (result.success) {
+            console.log('✅ SUCCESS! Event saved:', result.event);
+            
+            if (window.vkBridge) {
+                vkBridge.send('VKWebAppTapticNotificationOccurred', {
+                    type: 'success'
+                });
+            }
+            
+            alert('✅ Событие успешно добавлено! Вы получите напоминания в нужное время.');
+            form.reset();
+            showScreen('home-screen');
+            renderEvents();
+        } else {
+            console.log('❌ API returned error:', result.error);
+            alert('❌ Ошибка: ' + result.error);
+        }
+    } catch (error) {
+        console.error('❌ Exception during API call:', error);
+        alert('❌ Ошибка при сохранении события. Проверьте подключение к интернету.');
+    }
+});
+
 
 
 function handleOrderForm(event) {
